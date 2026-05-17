@@ -10,7 +10,9 @@ app.use(express.static('.'));
 app.get('/api/search', async (req, res) => {
   const { sector, stage, capital, founder } = req.query;
 
-  const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+console.log('API KEY exists:', !!apiKey, 'length:', apiKey ? apiKey.length : 0);
+const client = new Anthropic({ apiKey });
 
   const sectorLabel = sector || 'fintech, ecommerce, saas, healthtech, edtech, ai, lojistik, proptech';
   const stageLabel = stage || 'seed, series a, series b';
