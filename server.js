@@ -11,13 +11,14 @@ app.get('/api/search', async (req, res) => {
   const { sector, stage, capital, founder } = req.query;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
-console.log('API KEY exists:', !!apiKey, 'length:', apiKey ? apiKey.length : 0);
-const client = new Anthropic({ apiKey });
+  if (!apiKey) {
+    return res.status(500).json({ success: false, error: 'API key bulunamadı' });
+  }
+
+  const client = new Anthropic({ apiKey });
 
   const sectorLabel = sector || 'fintech, ecommerce, saas, healthtech, edtech, ai, lojistik, proptech';
   const stageLabel = stage || 'seed, series a, series b';
-  const capitalLabel = capital || 'herhangi';
-  const founderLabel = founder || 'herhangi';
 
   const capitalFilter = capital === 'bootstrap'
     ? 'Başlangıç sermayesi $0-10K arasında olmalı, tek kişi bile başlatabilmeli.'
@@ -35,34 +36,35 @@ const client = new Anthropic({ apiKey });
     ? 'Daha büyük bir ekip ve kaynak gerektiren bir model olabilir.'
     : '';
 
-  const prompt = `Sen deneyimli bir Türkiye odaklı venture araştırmacısısın. Amerika'da yatırım almış, Türkiye'de henüz iyi uygulanmamış startup modellerini araştırıp analiz ediyorsun.
+  const prompt = `Sen Türkiye odaklı venture araştırmacısısın. Amerika'da yatırım almış, Türkiye'de henüz iyi uygulanmamış 5 startup bul ve analiz et.
 
-Görev: ${sectorLabel} sektöründe, ${stageLabel} aşamasında, son 1-2 yılda yatırım almış ve Türkiye'de uygulanabilecek 5 gerçek startup bul.
-
-Önemli filtreler:
+Sektör: ${sectorLabel}
+Aşama: ${stageLabel}
 ${capitalFilter}
 ${founderFilter}
 
-Her startup için şu alanları doldur:
-- name: Startup'ın gerçek adı
-- sector: Sektör (Türkçe, kısa)
-- stage: Yatırım turu ve tutarı (ör: "Series A — $12M")
-- oneLiner: Ne yaptığı (Türkçe, max 12 kelime)
-- whatItDoes: Detaylı açıklama — iş modeli, nasıl para kazanıyor, müşterisi kim (Türkçe, 3-4 cümle)
-- trOpportunity: Türkiye'de neden büyük fırsat var (Türkçe, 3-4 cümle)
-- trRisk: En kritik engel (Türkçe, 1-2 cümle)
-- trScore: Türkiye uygunluk skoru 1-10 (sadece tam sayı)
-- competitor: Türkiye'deki mevcut rakip (yoksa "Henüz güçlü rakip yok")
-- marketSize: Türkiye pazar büyüklüğü bu sektörde, TAM rakamı dolar cinsinden (Türkçe, 1-2 cümle)
-- difficulty: Zorluk seviyesi — "Kolay", "Orta" veya "Zor"
-- difficultyDetail: Zorluk açıklaması — gereken sermaye, ekip büyüklüğü, teknik gereksinimler (Türkçe, 2-3 cümle)
-- capitalNeeded: Tahmini başlangıç sermayesi dolar cinsinden (ör: "$5K–20K", "$50K–200K", "$500K+")
-- founderType: Kimler yapabilir (ör: "Solo founder", "2-3 kişilik ekip", "Büyük ekip + yatırım")
-- revenueModel: Türkiye'de nasıl para kazanılır (Türkçe, 2-3 cümle)
-- url: Startup websitesi URL'i
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma, markdown kullanma:
 
-SADECE geçerli JSON döndür, başka hiçbir şey yazma:
-[{"name":"...","sector":"...","stage":"...","oneLiner":"...","whatItDoes":"...","trOpportunity":"...","trRisk":"...","trScore":8,"competitor":"...","marketSize":"...","difficulty":"Orta","difficultyDetail":"...","capitalNeeded":"...","founderType":"...","revenueModel":"...","url":"..."}]`;
+[
+  {
+    "name": "Startup adı",
+    "sector": "Sektör (Türkçe)",
+    "stage": "Seed — $2M",
+    "oneLiner": "Ne yaptığı (max 10 kelime)",
+    "whatItDoes": "İş modeli açıklaması (Türkçe, 2-3 cümle)",
+    "trOpportunity": "Türkiye fırsatı (Türkçe, 2-3 cümle)",
+    "trRisk": "En büyük risk (Türkçe, 1 cümle)",
+    "trScore": 8,
+    "competitor": "Türk rakibi veya Henüz güçlü rakip yok",
+    "marketSize": "Türkiye pazar büyüklüğü (Türkçe, 1 cümle)",
+    "difficulty": "Kolay",
+    "difficultyDetail": "Zorluk detayı (Türkçe, 2 cümle)",
+    "capitalNeeded": "$10K–50K",
+    "founderType": "Solo founder",
+    "revenueModel": "Gelir modeli (Türkçe, 2 cümle)",
+    "url": "https://example.com"
+  }
+]`;
 
   try {
     const response = await client.messages.create({
@@ -72,14 +74,24 @@ SADECE geçerli JSON döndür, başka hiçbir şey yazma:
       messages: [{ role: 'user', content: prompt }]
     });
 
-    const textBlocks = response.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    const textBlocks = response.content
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('');
+
     const clean = textBlocks.replace(/```json|```/g, '').trim();
     const match = clean.match(/\[[\s\S]*\]/);
-    if (!match) throw new Error('JSON parse hatası');
+
+    if (!match) {
+      console.error('No JSON found. Response:', clean.substring(0, 500));
+      throw new Error('Sonuç alınamadı, tekrar deneyin');
+    }
+
     const startups = JSON.parse(match[0]);
     res.json({ success: true, data: startups });
+
   } catch (err) {
-    console.error('API Error:', err);
+    console.error('Error:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
