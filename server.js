@@ -5,7 +5,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static('.'));
 
 app.get('/api/search', async (req, res) => {
   const { sector, stage, capital, founder } = req.query;
