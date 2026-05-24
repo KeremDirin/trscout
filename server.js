@@ -17,21 +17,32 @@ function cleanDomain(url) {
   }
 }
 
-// ─── [Data Engineer] ZEL TARİH FİLTRESİ ─────────────────────────────────────
-// Serper sonuçlarını Claude'a göndermeden önce 2024 öncesini ayıkla
+// ─── [Data Engineer] GELİŞMİŞ REGEX YIL FİLTRESİ ────────────────────────────
+// Kural:
+//   - Metindeki tüm 4 haneli yılları (20xx) çıkar
+//   - En büyük yıl 2024'ten küçükse → saf dışı bırak (eski haber)
+//   - En büyük yıl >= 2024 ise → dahil et (güncel)
+//   - Hiç yıl yoksa → riske girme, dahil et (tarihsiz haberler de geçerli olabilir)
 function filterFreshResults(results) {
   const CUTOFF_YEAR = 2024;
+  const YEAR_REGEX = /\b(20\d{2})\b/g;
+
   return results.filter(item => {
     const text = `${item?.title || ''} ${item?.snippet || ''}`;
-    // Açık yıl referansı varsa kontrol et
-    const yearMatches = text.match(/\b(20\d{2})\b/g);
-    if (yearMatches) {
-      const years = yearMatches.map(Number);
-      const maxYear = Math.max(...years);
-      return maxYear >= CUTOFF_YEAR;
+    const matches = [...text.matchAll(YEAR_REGEX)];
+
+    // Hiç yıl bulunamadıysa dahil et
+    if (matches.length === 0) return true;
+
+    const years = matches.map(m => parseInt(m[1], 10));
+    const maxYear = Math.max(...years);
+
+    // En büyük yıl cutoff'tan küçükse eski haber — ele
+    const isPast = maxYear < CUTOFF_YEAR;
+    if (isPast) {
+      console.log(`[FILTER] Elendi (max yil: ${maxYear}): ${item?.title?.substring(0, 60) || ''}`);
     }
-    // Yıl referansı yoksa dahil et (tarihsiz haberler de olabilir)
-    return true;
+    return !isPast;
   });
 }
 
