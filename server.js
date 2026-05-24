@@ -48,7 +48,7 @@ app.get('/api/search', async (req, res) => {
 
   try {
     // Serper ile güncel startup haberleri çek
-    const searchQuery = `${sectorLabel} startup seed series A funding 2024 2025 ${momentumFilter}`;
+    const searchQuery = `${sectorLabel} startup "seed funding" OR "series A" 2024 2025 site:techcrunch.com OR site:crunchbase.com`;
     console.log('Searching:', searchQuery);
     
     const searchResults = await searchStartups(searchQuery);
