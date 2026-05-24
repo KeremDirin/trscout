@@ -3,7 +3,7 @@
 Amerika'da yatırım almış startupları Türkiye pazarına uygunluğuna göre analiz eden AI destekli araştırma aracı.
 
 ## Özellikler
-- **Pazar Momentumu** — Amerika'da kanıtlanmış, dünyada yeni veya son fırsat analizi
+- **Pazar Momentumu** — Dünyada yeni, Amerika'da kanıtlanmış veya son fırsat analizi
 - **Giriş Bariyeri** — Açık pazar, orta bariyer veya kaleli pazar tespiti
 - **Türkiye Uygunluk Skoru** (1-10) — Her startup için TR fit analizi
 - **Regülasyon Riski** — Sektöre göre otomatik BDDK/KVKK/SPK risk tespiti
