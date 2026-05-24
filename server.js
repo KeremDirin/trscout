@@ -7,77 +7,110 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static('.'));
 
+async function searchStartups(query) {
+  const response = await fetch('https://google.serper.dev/search', {
+    method: 'POST',
+    headers: {
+      'X-API-KEY': process.env.SERPER_API_KEY,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ q: query, num: 10, gl: 'us', hl: 'en' })
+  });
+  const data = await response.json();
+  return data.organic || [];
+}
+
 app.get('/api/search', async (req, res) => {
   const { sector, momentum, barrier } = req.query;
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return res.status(500).json({ success: false, error: 'API key bulunamadı' });
+  if (!process.env.SERPER_API_KEY) return res.status(500).json({ success: false, error: 'Serper key bulunamadı' });
 
   const client = new Anthropic({ apiKey });
 
-  const sectorLabel = sector || 'fintech, ecommerce, saas, healthtech, edtech, ai, lojistik, proptech';
+  const sectorLabel = sector || 'fintech ecommerce saas healthtech edtech ai logistics proptech';
 
   const momentumMap = {
-    'proven': 'Amerika\'da kanıtlanmış, Türkiye\'de henüz güçlü rakip yok — şu an girmek için ideal pencere',
-    'pioneer': 'Dünyada da erken aşamada, Türkiye\'de sıfır rakip — öncü olmak için fırsat, yüksek risk yüksek ödül',
-    'moving': 'Türkiye\'de hareket başladı, 1-2 oyuncu var — hızlı hareket edilmesi gereken son pencere'
+    'proven': 'proven in USA, no strong competitor in Turkey yet',
+    'pioneer': 'very early stage globally, pioneer opportunity',
+    'moving': 'Turkey market just starting, last entry window'
   };
 
   const barrierMap = {
-    'open': 'Giriş bariyeri düşük — hızlı MVP yapılabilir, teknik altyapı minimal, solo founder uygun',
-    'mid': 'Orta bariyer — network veya teknoloji avantajı şart, 2-3 kişilik ekip gerekli',
-    'fortress': 'Yüksek bariyer — lisans, regülasyon veya büyük sermaye gerekli, ama bu yüzden korunaklı'
+    'open': 'low barrier, solo founder can build MVP quickly',
+    'mid': 'medium barrier, needs network or tech advantage',
+    'fortress': 'high barrier, requires license or large capital but protected market'
   };
 
-  const momentumFilter = momentum ? `Pazar momentumu kriteri: ${momentumMap[momentum]}` : '';
-  const barrierFilter = barrier ? `Giriş bariyeri kriteri: ${barrierMap[barrier]}` : '';
+  const momentumFilter = momentum ? momentumMap[momentum] : '';
+  const barrierFilter = barrier ? barrierMap[barrier] : '';
 
-  // Auto regulatory risk by sector
-  const regRiskBySector = {
-    'fintech': 'yüksek', 'healthtech': 'yüksek',
-    'ecommerce': 'orta', 'logistics': 'orta',
-    'saas': 'düşük', 'ai': 'düşük', 'edtech': 'düşük',
-    'proptech': 'orta', 'gaming': 'düşük', 'hrtech': 'düşük'
-  };
-  const autoReg = regRiskBySector[sector] || null;
+  try {
+    // Serper ile güncel startup haberleri çek
+    const searchQuery = `${sectorLabel} startup seed series A funding 2024 2025 ${momentumFilter}`;
+    console.log('Searching:', searchQuery);
+    
+    const searchResults = await searchStartups(searchQuery);
+    
+    const searchContext = searchResults
+      .slice(0, 8)
+      .map(r => `- ${r.title}: ${r.snippet} (${r.link})`)
+      .join('\n');
 
-  const prompt = `Sen Türkiye odaklı venture araştırmacısısın. Amerika'da yatırım almış, Türkiye'de henüz iyi uygulanmamış 5 startup bul ve analiz et.
+    console.log('Search results found:', searchResults.length);
 
-Sektör: ${sectorLabel}
-${momentumFilter}
-${barrierFilter}
+    // Regülasyon riski sektöre göre otomatik
+    const regRiskBySector = {
+      'fintech': 'yüksek', 'healthtech': 'yüksek',
+      'ecommerce': 'orta', 'logistics': 'orta',
+      'saas': 'düşük', 'ai': 'düşük', 'edtech': 'düşük',
+      'proptech': 'orta', 'gaming': 'düşük', 'hrtech': 'düşük'
+    };
+    const autoReg = regRiskBySector[sector] || 'orta';
 
-SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma, markdown kullanma:
+    const prompt = `Sen Türkiye odaklı venture araştırmacısısın. Aşağıdaki güncel web arama sonuçlarını kullanarak Amerika'da yatırım almış, Türkiye'de henüz iyi uygulanmamış 5 startup bul ve analiz et.
+
+GÜNCEL WEB ARAMA SONUÇLARI:
+${searchContext}
+
+Filtreler:
+- Sektör: ${sectorLabel}
+- Momentum: ${momentumFilter || 'herhangi'}
+- Bariyer: ${barrierFilter || 'herhangi'}
+
+Bu arama sonuçlarındaki gerçek startupları kullan. Eğer sonuçlarda yeterli startup yoksa bildiğin güncel örnekleri ekle.
+
+SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
 [
   {
     "name": "Startup adı",
-    "sector": "Sektör (Türkçe, kısa)",
+    "sector": "Sektör (Türkçe)",
     "stage": "Seed — $2M",
     "oneLiner": "Ne yaptığı (max 10 kelime)",
-    "whatItDoes": "İş modeli açıklaması (Türkçe, 2-3 cümle)",
+    "whatItDoes": "İş modeli (Türkçe, 2-3 cümle)",
     "trOpportunity": "Türkiye fırsatı (Türkçe, 2-3 cümle)",
     "trRisk": "En büyük risk (Türkçe, 1 cümle)",
     "trScore": 8,
     "competitor": "Türk rakibi veya Henüz güçlü rakip yok",
     "marketSize": "Türkiye pazar büyüklüğü, rakam ver (Türkçe, 1 cümle)",
     "momentum": "Amerika kanıtladı",
-    "momentumDetail": "Zamanlama açıklaması neden şimdi (Türkçe, 1-2 cümle)",
+    "momentumDetail": "Neden şimdi (Türkçe, 1-2 cümle)",
     "barrier": "Açık pazar",
-    "barrierDetail": "Giriş bariyeri detayı, sermaye ve ekip (Türkçe, 1-2 cümle)",
+    "barrierDetail": "Sermaye ve ekip gereksinimi (Türkçe, 1-2 cümle)",
     "revenueModel": "Abonelik",
-    "revenueDetail": "Gelir modeli detayı (Türkçe, 1-2 cümle)",
+    "revenueDetail": "Gelir detayı (Türkçe, 1-2 cümle)",
     "hype": "sessiz",
     "url": "https://example.com"
   }
 ]
 
-momentum alanı için: "Amerika kanıtladı", "Dünyada da yeni", "Tren hareket etti"
-barrier alanı için: "Açık pazar", "Orta bariyer", "Kaleli pazar"
-revenueModel alanı için: "Abonelik", "Marketplace", "Finansal ürün", "Doğrudan satış"
-hype alanı için: "sessiz", "yükselen", "zirve"`;
+momentum: "Amerika kanıtladı", "Dünyada da yeni", "Tren hareket etti"
+barrier: "Açık pazar", "Orta bariyer", "Kaleli pazar"
+revenueModel: "Abonelik", "Marketplace", "Finansal ürün", "Doğrudan satış"
+hype: "sessiz", "yükselen", "zirve"`;
 
-  try {
     const response = await client.messages.create({
       model: 'claude-sonnet-4-5',
       max_tokens: 4000,
@@ -90,12 +123,10 @@ hype alanı için: "sessiz", "yükselen", "zirve"`;
     if (!match) throw new Error('Sonuç alınamadı, tekrar deneyin');
 
     const startups = JSON.parse(match[0]);
-
-    // Auto-inject regulatory risk if sector known
-    if (autoReg) startups.forEach(s => s.regulatoryRisk = autoReg);
-    else startups.forEach(s => { if (!s.regulatoryRisk) s.regulatoryRisk = 'orta'; });
+    startups.forEach(s => s.regulatoryRisk = autoReg);
 
     res.json({ success: true, data: startups });
+
   } catch (err) {
     console.error('Error:', err.message);
     res.status(500).json({ success: false, error: err.message });
