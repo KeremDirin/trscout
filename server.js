@@ -178,7 +178,8 @@ KESİN KURALLAR:
 2. Kendi eğitim verisinden HİÇBİR şirket adı üretemezsin.
 3. url alanını BOŞ BIRAK — sistem otomatik dolduracak.
 4. Savunma, askeri, government-only, DoD contractor şirketleri kesinlikle dahil etme.
-5. Yanıtın SADECE geçerli JSON array olacak. Başka metin YOK.`;
+5. Yanıtın SADECE geçerli JSON array olacak. Başka metin YOK.
+6. Şirketin kuruluş yılını snippet veya title'dan tespit et. Kuruluş yılı 2022 veya daha eskiyse o şirketi JSON'a EKLEME, direkt atla. Sadece 2023, 2024, 2025, 2026'da kurulmuş şirketleri dahil et. Kuruluş yılı tespit edilemiyorsa dahil et.`;
 
     const userPrompt = `Aşağıdaki CANLI WEB ARAMA SONUÇLARI JSON'unu analiz et.
 
@@ -212,6 +213,7 @@ Bu verilerden Türkiye için en uygun 5 şirketi seç ve analiz et:
     "revenueModel": "Abonelik",
     "revenueDetail": "Gelir detayı Türkçe 1-2 cümle",
     "hype": "sessiz",
+    "kurulus_yili": 2024,
     "url": ""
   }
 ]
@@ -257,14 +259,18 @@ hype: "sessiz", "yükselen", "zirve"`;
       });
     }
 
-    // Validasyon
-    const valid = startups.filter(s =>
-      s?.name &&
-      s.name.length > 2 &&
-      !s.name.toLowerCase().includes('startup adı') &&
-      s?.trScore >= 1 &&
-      s?.trScore <= 10
-    );
+    // Validasyon — çift güvence: Claude filtresi + JS filtresi
+    const valid = startups.filter(s => {
+      if (!s?.name || s.name.length <= 2) return false;
+      if (s.name.toLowerCase().includes('startup adı')) return false;
+      if (!s?.trScore || s.trScore < 1 || s.trScore > 10) return false;
+      // Çift güvence: kurulus_yili alanı varsa ve 2022 veya öncesiyse ele
+      if (s?.kurulus_yili && typeof s.kurulus_yili === 'number' && s.kurulus_yili <= 2022) {
+        console.log(`[FILTER-JS] Kuruluş yılı elendi (${s.kurulus_yili}): ${s.name}`);
+        return false;
+      }
+      return true;
+    });
 
     if (valid.length === 0) {
       return res.status(422).json({
