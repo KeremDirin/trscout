@@ -14,119 +14,122 @@
     --accent: #d4f53c; --green: #3dffa0; --amber: #f5a623; --red: #ff4d3d;
   }
   body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; line-height: 1.6; min-height: 100vh; }
-
+ 
   nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; padding: 1.2rem 2.5rem; border-bottom: 1px solid var(--border); background: rgba(10,10,10,0.9); backdrop-filter: blur(12px); }
   .logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.15rem; }
   .logo span { color: var(--accent); }
   .nav-tag { font-size: 11px; color: var(--text3); letter-spacing: 0.1em; text-transform: uppercase; }
-
+ 
   .hero { padding: 9rem 2.5rem 3rem; max-width: 960px; margin: 0 auto; }
   .eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
   .eyebrow::before { content: ''; width: 20px; height: 1px; background: var(--accent); }
   h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.4rem, 5vw, 4.2rem); font-weight: 800; line-height: 1.0; letter-spacing: -0.03em; margin-bottom: 1.2rem; }
   h1 em { font-style: normal; color: var(--accent); }
   .hero-sub { font-size: 1rem; color: var(--text2); max-width: 520px; }
-
+ 
   .search-panel { max-width: 960px; margin: 0 auto; padding: 0 2.5rem 2rem; }
-
-  .filters-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 10px; align-items: end; }
-
+  .filters-grid { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 10px; margin-bottom: 10px; align-items: end; }
   .filter-group label { display: block; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 6px; }
-
+ 
   select { width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: 0.8rem 1rem; font-family: 'DM Sans', sans-serif; font-size: 13px; border-radius: 8px; appearance: none; cursor: pointer; transition: border-color 0.2s; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23555' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
   select:hover, select:focus { border-color: var(--border-h); outline: none; }
-
-  .search-btn { background: var(--accent); color: #0a0a0a; border: none; padding: 0.8rem 1.8rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; border-radius: 8px; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+ 
+  .search-btn { background: var(--accent); color: #0a0a0a; border: none; padding: 0.8rem 1.8rem; font-family: 'Syne', sans-serif; font-weight: 700; font-size: 13px; letter-spacing: 0.05em; border-radius: 8px; cursor: pointer; transition: all 0.2s; white-space: nowrap; height: 44px; }
   .search-btn:hover { background: #c8e82e; transform: translateY(-1px); }
   .search-btn:disabled { background: var(--bg3); color: var(--text3); cursor: not-allowed; transform: none; }
-
+ 
   .status-bar { display: flex; align-items: center; gap: 8px; padding: 0.6rem 0; font-size: 13px; color: var(--text3); min-height: 36px; }
   .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
   .dot.active { background: var(--accent); animation: pulse 1.2s infinite; }
   @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
-
+ 
   .results-section { max-width: 960px; margin: 0 auto; padding: 0 2.5rem 6rem; }
   .results-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 1.2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
   .results-count { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 600; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; }
   .results-count span { color: var(--accent); }
-
+ 
   .cards { display: flex; flex-direction: column; gap: 2px; }
-
   .card { background: #111; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; animation: fadeUp 0.4s ease both; transition: border-color 0.2s; }
   .card:hover { border-color: var(--border-h); }
   @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-
+ 
   .card-header { padding: 1.4rem 1.6rem; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; cursor: pointer; }
   .card-left { flex: 1; }
   .card-meta { display: flex; align-items: center; gap: 6px; margin-bottom: 0.5rem; flex-wrap: wrap; }
-
+ 
   .tag { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); color: var(--text3); }
   .tag.sector { color: var(--accent); border-color: rgba(212,245,60,0.2); background: rgba(212,245,60,0.05); }
-
+  .tag.timing-seed { color: #a78bfa; border-color: rgba(167,139,250,0.2); background: rgba(167,139,250,0.05); }
+  .tag.timing-golden { color: var(--accent); border-color: rgba(212,245,60,0.2); background: rgba(212,245,60,0.05); }
+  .tag.timing-last { color: var(--amber); border-color: rgba(245,166,35,0.2); background: rgba(245,166,35,0.05); }
+  .tag.timing-late { color: var(--red); border-color: rgba(255,77,61,0.2); background: rgba(255,77,61,0.05); }
+ 
+  .badge-reg { font-size: 9px; padding: 2px 6px; border-radius: 3px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+  .reg-low { background: rgba(61,255,160,0.1); color: var(--green); }
+  .reg-mid { background: rgba(245,166,35,0.1); color: var(--amber); }
+  .reg-high { background: rgba(255,77,61,0.1); color: var(--red); }
+ 
+  .hype-badge { font-size: 11px; }
+ 
   .card-name { font-family: 'Syne', sans-serif; font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 0.3rem; }
   .card-oneliner { font-size: 13px; color: var(--text2); font-style: italic; }
-
   .card-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
-
+ 
   .score-badge { width: 50px; height: 50px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
   .score-badge .num { font-family: 'Syne', sans-serif; font-size: 1.35rem; font-weight: 800; line-height: 1; }
   .score-badge .lbl { font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.6; }
   .score-high { background: rgba(61,255,160,0.1); border: 1px solid rgba(61,255,160,0.25); color: var(--green); }
   .score-mid { background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.25); color: var(--amber); }
   .score-low { background: rgba(255,77,61,0.1); border: 1px solid rgba(255,77,61,0.25); color: var(--red); }
-
-  .difficulty-badge { font-size: 10px; padding: 3px 8px; border-radius: 4px; font-weight: 500; letter-spacing: 0.04em; }
-  .diff-easy { background: rgba(61,255,160,0.1); color: var(--green); border: 1px solid rgba(61,255,160,0.2); }
-  .diff-mid { background: rgba(245,166,35,0.1); color: var(--amber); border: 1px solid rgba(245,166,35,0.2); }
-  .diff-hard { background: rgba(255,77,61,0.1); color: var(--red); border: 1px solid rgba(255,77,61,0.2); }
-
+ 
   .expand-hint { font-size: 11px; color: var(--text3); }
   .card-header.open .expand-hint { color: var(--accent); }
-
+ 
   .card-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
   .card-body.open { max-height: 1400px; }
-
+ 
   .card-content { padding: 1.4rem 1.6rem; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
-
+ 
+  .highlight-row { grid-column: 1/-1; display: flex; gap: 12px; padding: 0.8rem 1rem; background: rgba(212,245,60,0.04); border: 1px solid rgba(212,245,60,0.1); border-radius: 8px; }
+  .highlight-item .hl { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
+  .highlight-item .hv { font-size: 13px; color: var(--accent); font-weight: 500; }
+  .highlight-item { flex: 1; }
+ 
   .detail-block .dl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text3); margin-bottom: 0.4rem; }
   .detail-block .dt { font-size: 13px; color: var(--text); line-height: 1.65; }
   .detail-block .dt.risk { color: var(--amber); }
-
-  .capital-row { grid-column: 1/-1; display: flex; gap: 12px; padding: 0.8rem 1rem; background: rgba(212,245,60,0.04); border: 1px solid rgba(212,245,60,0.1); border-radius: 8px; }
-  .capital-item { flex: 1; }
-  .capital-item .cl { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text3); margin-bottom: 3px; }
-  .capital-item .cv { font-size: 13px; color: var(--accent); font-weight: 500; }
-
+ 
   .card-footer { grid-column: 1/-1; display: flex; gap: 8px; padding-top: 1rem; border-top: 1px solid var(--border); flex-wrap: wrap; }
   .action-btn { font-size: 12px; padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text2); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all 0.2s; }
   .action-btn:hover { border-color: var(--accent); color: var(--accent); }
   .action-btn.primary { background: var(--accent); color: #0a0a0a; border-color: var(--accent); font-weight: 500; }
   .action-btn.primary:hover { background: #c8e82e; }
-
+ 
   footer { border-top: 1px solid var(--border); padding: 1.5rem 2.5rem; text-align: center; font-size: 12px; color: var(--text3); }
-
+ 
   @media(max-width:640px) {
     nav { padding: 1rem 1.25rem; }
     .hero, .search-panel, .results-section { padding-left: 1.25rem; padding-right: 1.25rem; }
     .filters-grid { grid-template-columns: 1fr 1fr; }
     .search-btn { grid-column: 1/-1; }
     .card-content { grid-template-columns: 1fr; }
+    .highlight-row { flex-direction: column; }
   }
 </style>
 </head>
 <body>
-
+ 
 <nav>
   <div class="logo">TR<span>Scout</span></div>
   <div class="nav-tag">Amerika → Türkiye Startup Radar</div>
 </nav>
-
+ 
 <section class="hero">
   <div class="eyebrow">Yapay Zeka Destekli Araştırma</div>
   <h1>Amerika'nın <em>kazananları</em>,<br>Türkiye'nin <em>fırsatları</em>.</h1>
-  <p class="hero-sub">Yatırım almış US startuplarını gerçek zamanlı tarar, Türkiye pazarına uygunluğunu analiz eder ve detaylı fırsat raporu sunar.</p>
+  <p class="hero-sub">Yatırım almış US startuplarını analiz eder, Türkiye pazarına uygunluğunu ve doğru zamanlamayı değerlendirir.</p>
 </section>
-
+ 
 <section class="search-panel">
   <div class="filters-grid">
     <div class="filter-group">
@@ -146,30 +149,23 @@
       </select>
     </div>
     <div class="filter-group">
-      <label>Yatırım Aşaması</label>
-      <select id="stage">
-        <option value="">Tüm aşamalar</option>
-        <option value="seed">Seed ($500K–$5M)</option>
-        <option value="series_a">Series A ($5M–$25M)</option>
-        <option value="series_b">Series B ($25M+)</option>
+      <label>Türkiye Zamanlaması</label>
+      <select id="timing">
+        <option value="">Fark etmez</option>
+        <option value="seed">🌱 Tohum dönem — Dünya yeni keşfetti</option>
+        <option value="golden">🚀 Altın pencere — Şimdi girmek için ideal</option>
+        <option value="last">⚡ Son fırsat — Hızlı hareket et</option>
+        <option value="late">🚫 Geç kalındı — Pazar olgunlaşmış</option>
       </select>
     </div>
     <div class="filter-group">
-      <label>Başlangıç Sermayesi</label>
-      <select id="capital">
+      <label>Gelir Modeli</label>
+      <select id="revenueModel">
         <option value="">Fark etmez</option>
-        <option value="bootstrap">Bootstrappable ($0–$10K)</option>
-        <option value="low">Düşük sermaye ($10K–$100K)</option>
-        <option value="mid">Orta sermaye ($100K+)</option>
-      </select>
-    </div>
-    <div class="filter-group">
-      <label>Kurucu Profili</label>
-      <select id="founder">
-        <option value="">Fark etmez</option>
-        <option value="solo">Solo founder</option>
-        <option value="small">2–3 kişilik ekip</option>
-        <option value="large">Büyük ekip</option>
+        <option value="subscription">💳 Abonelik (SaaS)</option>
+        <option value="marketplace">🏪 Marketplace komisyonu</option>
+        <option value="financial">🏦 Finansal ürün</option>
+        <option value="direct">📦 Doğrudan satış</option>
       </select>
     </div>
     <div class="filter-group">
@@ -177,34 +173,60 @@
       <button class="search-btn" id="searchBtn" onclick="runSearch()">Tara →</button>
     </div>
   </div>
-
+ 
   <div class="status-bar">
     <div class="dot" id="dot"></div>
     <span id="statusText">Filtreleri seç ve aramayı başlat.</span>
   </div>
 </section>
-
+ 
 <section class="results-section" id="resultsSection" style="display:none">
   <div class="results-header">
     <div class="results-count" id="resultsCount"></div>
   </div>
   <div class="cards" id="cardsGrid"></div>
 </section>
-
+ 
 <footer>
-  <strong>TRScout</strong> — Veriler yapay zeka tarafından gerçek zamanlı derlenir. Yatırım kararı vermeden önce kaynakları doğrulayın.
+  <strong>TRScout</strong> — Veriler yapay zeka tarafından derlenir. Yatırım kararı vermeden önce kaynakları doğrulayın.
 </footer>
-
+ 
 <script>
 function scoreClass(s) { return s>=8?'score-high':s>=6?'score-mid':'score-low'; }
-function diffClass(d) { return d==='Kolay'?'diff-easy':d==='Orta'?'diff-mid':'diff-hard'; }
-
+ 
+function timingClass(t) {
+  if (!t) return '';
+  if (t.includes('Tohum')) return 'timing-seed';
+  if (t.includes('Altın')) return 'timing-golden';
+  if (t.includes('Son')) return 'timing-last';
+  if (t.includes('Geç')) return 'timing-late';
+  return '';
+}
+ 
+function regClass(r) {
+  if (r === 'düşük') return 'reg-low';
+  if (r === 'orta') return 'reg-mid';
+  return 'reg-high';
+}
+ 
+function regLabel(r) {
+  if (r === 'düşük') return '🟢 Düşük Regülasyon';
+  if (r === 'orta') return '🟡 Orta Regülasyon';
+  return '🔴 Yüksek Regülasyon';
+}
+ 
+function hypeLabel(h) {
+  if (h === 'sessiz') return '🥶 Sessiz fırsat';
+  if (h === 'yükselen') return '🔥 Yükselen trend';
+  return '💥 Peak hype';
+}
+ 
 function toggleCard(i) {
   const h = document.getElementById('h'+i), b = document.getElementById('b'+i);
   b.classList.toggle('open');
   h.classList.toggle('open');
 }
-
+ 
 function renderCards(data) {
   const grid = document.getElementById('cardsGrid');
   const section = document.getElementById('resultsSection');
@@ -212,10 +234,11 @@ function renderCards(data) {
   grid.innerHTML = '';
   section.style.display = 'block';
   count.innerHTML = `<span>${data.length}</span> startup bulundu`;
-
+ 
   data.forEach((s, i) => {
     const sc = scoreClass(s.trScore);
-    const dc = diffClass(s.difficulty);
+    const tc = timingClass(s.timing);
+    const rc = regClass(s.regulatoryRisk);
     const card = document.createElement('div');
     card.className = 'card';
     card.style.animationDelay = (i*0.08)+'s';
@@ -224,8 +247,10 @@ function renderCards(data) {
         <div class="card-left">
           <div class="card-meta">
             <span class="tag sector">${s.sector}</span>
-            <span class="tag">${s.stage}</span>
-            <span class="difficulty-badge ${dc}">${s.difficulty}</span>
+            ${s.timing ? `<span class="tag ${tc}">${s.timing}</span>` : ''}
+            ${s.revenueModel ? `<span class="tag">${s.revenueModel}</span>` : ''}
+            <span class="badge-reg ${rc}">${regLabel(s.regulatoryRisk)}</span>
+            <span class="hype-badge">${hypeLabel(s.hype)}</span>
           </div>
           <div class="card-name">${s.name}</div>
           <div class="card-oneliner">${s.oneLiner}</div>
@@ -240,18 +265,18 @@ function renderCards(data) {
       </div>
       <div class="card-body" id="b${i}">
         <div class="card-content">
-          <div class="capital-row">
-            <div class="capital-item">
-              <div class="cl">💰 Tahmini Sermaye</div>
-              <div class="cv">${s.capitalNeeded}</div>
+          <div class="highlight-row">
+            <div class="highlight-item">
+              <div class="hl">📊 TR Pazar Büyüklüğü</div>
+              <div class="hv">${s.marketSize}</div>
             </div>
-            <div class="capital-item">
-              <div class="cl">👤 Kurucu Profili</div>
-              <div class="cv">${s.founderType}</div>
+            <div class="highlight-item">
+              <div class="hl">⏱️ Zamanlama Detayı</div>
+              <div class="hv">${s.timingDetail || '-'}</div>
             </div>
-            <div class="capital-item">
-              <div class="cl">📊 TR Pazar Büyüklüğü</div>
-              <div class="cv">${s.marketSize}</div>
+            <div class="highlight-item">
+              <div class="hl">💡 Gelir Detayı</div>
+              <div class="hv">${s.revenueDetail || '-'}</div>
             </div>
           </div>
           <div class="detail-block">
@@ -270,14 +295,6 @@ function renderCards(data) {
             <div class="dl">🏁 Türkiye rakibi</div>
             <div class="dt">${s.competitor}</div>
           </div>
-          <div class="detail-block" style="grid-column:1/-1">
-            <div class="dl">⚡ Zorluk detayı</div>
-            <div class="dt">${s.difficultyDetail}</div>
-          </div>
-          <div class="detail-block" style="grid-column:1/-1">
-            <div class="dl">💡 Gelir modeli</div>
-            <div class="dt">${s.revenueModel}</div>
-          </div>
           <div class="card-footer">
             ${s.url ? `<button class="action-btn primary" onclick="window.open('${s.url}','_blank')">Siteye git ↗</button>` : ''}
             <button class="action-btn" onclick="window.open('https://www.google.com/search?q=${encodeURIComponent(s.name+' startup')}','_blank')">Google'da ara</button>
@@ -287,29 +304,26 @@ function renderCards(data) {
     grid.appendChild(card);
   });
 }
-
+ 
 async function runSearch() {
   const sector = document.getElementById('sector').value;
-  const stage = document.getElementById('stage').value;
-  const capital = document.getElementById('capital').value;
-  const founder = document.getElementById('founder').value;
+  const timing = document.getElementById('timing').value;
+  const revenueModel = document.getElementById('revenueModel').value;
   const btn = document.getElementById('searchBtn');
   const dot = document.getElementById('dot');
   const statusText = document.getElementById('statusText');
-
+ 
   btn.disabled = true;
   btn.textContent = 'Taranıyor...';
   dot.className = 'dot active';
-  statusText.textContent = 'AI web\'i tarayıp analiz yapıyor, 20-30 saniye sürebilir...';
+  statusText.textContent = 'AI analiz yapıyor, 15-20 saniye sürebilir...';
   document.getElementById('resultsSection').style.display = 'none';
-
+ 
   try {
-    const params = new URLSearchParams({ sector, stage, capital, founder });
+    const params = new URLSearchParams({ sector, timing, revenueModel });
     const res = await fetch('/api/search?' + params);
     const json = await res.json();
-
     if (!json.success) throw new Error(json.error);
-
     statusText.textContent = `${json.data.length} startup bulundu.`;
     dot.className = 'dot';
     renderCards(json.data);
@@ -317,11 +331,11 @@ async function runSearch() {
     statusText.textContent = 'Hata: ' + err.message;
     dot.className = 'dot';
   }
-
+ 
   btn.disabled = false;
   btn.textContent = 'Tara →';
 }
-
+ 
 document.addEventListener('keydown', e => { if(e.key==='Enter') runSearch(); });
 </script>
 </body>
