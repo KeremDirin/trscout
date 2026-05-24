@@ -48,7 +48,7 @@ app.get('/api/search', async (req, res) => {
 
   try {
     // Serper ile güncel startup haberleri çek
-    const searchQuery = `${sectorLabel} startup "seed funding" OR "series A" 2024 2025 site:techcrunch.com OR site:crunchbase.com`;
+    const searchQuery = `top new ${sectorLabel} startups funded 2024 2025 raised million series seed USA`;
     console.log('Searching:', searchQuery);
     
     const searchResults = await searchStartups(searchQuery);
@@ -79,7 +79,7 @@ Filtreler:
 - Momentum: ${momentumFilter || 'herhangi'}
 - Bariyer: ${barrierFilter || 'herhangi'}
 
-Bu arama sonuçlarındaki gerçek startupları kullan. Eğer sonuçlarda yeterli startup yoksa bildiğin güncel örnekleri ekle.
+Bu arama sonuçlarındaki gerçek startup şirketlerini kullan. Haber sitesi URL'i değil, startup'ın kendi websitesini yaz. Kategori veya genel terim değil, gerçek şirket adı yaz. Eğer sonuçlarda yeterli somut startup yoksa bildiğin 2023-2025 arası yatırım almış gerçek örnekleri ekle.
 
 SADECE aşağıdaki JSON formatında yanıt ver, başka hiçbir şey yazma:
 
