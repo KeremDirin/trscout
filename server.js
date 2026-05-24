@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static('.'));
 
-// ─── SERPER: İki aşamalı arama ───────────────────────────────────────────────
+// ─── SERPER: Genel arama ─────────────────────────────────────────────────────
 async function searchWithSerper(query) {
   const response = await fetch('https://google.serper.dev/search', {
     method: 'POST',
@@ -22,10 +22,26 @@ async function searchWithSerper(query) {
   return data.organic || [];
 }
 
-async function fetchStartupData(sectorLabel, momentumFilter) {
-  // Sorgu 1: TechCrunch'tan güncel yatırım haberleri
+// ─── SERPER: Startup'ın resmi sitesini bul ───────────────────────────────────
+async function findOfficialWebsite(startupName) {
+  try {
+    const results = await searchWithSerper(`${startupName} official website`);
+    // İlk organik sonucu al, haber/wiki/crunchbase gibi siteleri atla
+    const blocklist = ['crunchbase', 'linkedin', 'techcrunch', 'wikipedia',
+      'pitchbook', 'tracxn', 'wellfound', 'twitter', 'facebook', 'instagram'];
+    const official = results.find(r => {
+      const url = (r.link || '').toLowerCase();
+      return !blocklist.some(b => url.includes(b));
+    });
+    return official ? official.link : null;
+  } catch {
+    return null;
+  }
+}
+
+// ─── İki aşamalı startup araması ─────────────────────────────────────────────
+async function fetchStartupData(sectorLabel) {
   const q1 = `"raised" "million" "seed" OR "series A" ${sectorLabel} startup 2024 2025 site:techcrunch.com`;
-  // Sorgu 2: YC ve genel haberler
   const q2 = `${sectorLabel} startup "series A" OR "seed round" funded 2024 2025 -site:crunchbase.com -site:wikipedia.org`;
 
   const [r1, r2] = await Promise.all([
@@ -33,28 +49,22 @@ async function fetchStartupData(sectorLabel, momentumFilter) {
     searchWithSerper(q2).catch(() => [])
   ]);
 
-  // Birleştir ve deduplicate et
   const seen = new Set();
-  const combined = [...r1, ...r2].filter(item => {
+  return [...r1, ...r2].filter(item => {
     if (seen.has(item.link)) return false;
     seen.add(item.link);
     return true;
-  });
-
-  return combined.slice(0, 12);
+  }).slice(0, 12);
 }
 
 // ─── ANA ROUTE ────────────────────────────────────────────────────────────────
 app.get('/api/search', async (req, res) => {
   const { sector, momentum, barrier } = req.query;
 
-  // Env kontrolleri
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.ANTHROPIC_API_KEY)
     return res.status(500).json({ success: false, error: 'ANTHROPIC_API_KEY eksik' });
-  }
-  if (!process.env.SERPER_API_KEY) {
+  if (!process.env.SERPER_API_KEY)
     return res.status(500).json({ success: false, error: 'SERPER_API_KEY eksik' });
-  }
 
   const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   const sectorLabel = sector || 'fintech ecommerce saas healthtech edtech ai logistics proptech hrtech';
@@ -73,7 +83,6 @@ app.get('/api/search', async (req, res) => {
   const momentumFilter = momentumMap[momentum] || '';
   const barrierFilter = barrierMap[barrier] || '';
 
-  // Regülasyon riski sektöre göre otomatik
   const regMap = {
     fintech: 'yüksek', healthtech: 'yüksek',
     ecommerce: 'orta', logistics: 'orta', proptech: 'orta',
@@ -82,12 +91,11 @@ app.get('/api/search', async (req, res) => {
   const autoReg = regMap[sector] || 'orta';
 
   try {
-    // 1. Serper'dan taze veri çek
-    console.log(`[SEARCH] Sector: ${sectorLabel} | Momentum: ${momentumFilter}`);
-    const results = await fetchStartupData(sectorLabel, momentumFilter);
+    // AŞAMA 1: Serper'dan taze veri çek
+    console.log(`[SEARCH] Sector: ${sectorLabel}`);
+    const results = await fetchStartupData(sectorLabel);
     console.log(`[SEARCH] ${results.length} sonuç bulundu`);
 
-    // 2. Güvenlik: Yeterli sonuç yoksa dur
     if (results.length < 3) {
       return res.status(422).json({
         success: false,
@@ -95,7 +103,6 @@ app.get('/api/search', async (req, res) => {
       });
     }
 
-    // 3. Serper verilerini yapılandırılmış formata çevir
     const searchData = results.map((r, i) => ({
       index: i + 1,
       title: r.title || '',
@@ -103,35 +110,32 @@ app.get('/api/search', async (req, res) => {
       url: r.link || ''
     }));
 
-    const searchDataJSON = JSON.stringify(searchData, null, 2);
-
-    // 4. Claude'a strict system prompt ile gönder
-    const systemPrompt = `Sen bir startup veri analiz motorusun. Görevin: sana verilen JSON arama verilerindeki şirketleri Türkiye pazarı için analiz etmek.
+    // AŞAMA 2: Claude analiz yapsın, URL üretmesin — sadece isim döndürsün
+    const systemPrompt = `Sen bir startup veri analiz motorusun.
 
 KESİN KURALLAR:
 1. SADECE verilen JSON'daki title veya snippet'larda geçen gerçek şirket adlarını kullan.
-2. Kendi eğitim verisinden HİÇBİR şirket adı üretemezsin, ekleyemezsin.
-3. URL olarak MUTLAKA verilen JSON'daki "url" alanını kullan. Şirketin kendi sitesini biliyorsan onu da ekleyebilirsin ama uyduramazsın.
-4. Eğer JSON'da yeterli gerçek şirket bulamazsan, gerçekten bulunan kadarını döndür (minimum 2).
-5. Yanıtın SADECE geçerli JSON array olacak. Açıklama, özür veya başka metin YOK.`;
+2. Kendi eğitim verisinden HİÇBİR şirket adı üretemezsin.
+3. url alanını BOŞ BIRAK — sistem bunu otomatik dolduracak.
+4. Yanıtın SADECE geçerli JSON array olacak. Başka metin YOK.`;
 
-    const userPrompt = `Aşağıdaki CANLI WEB ARAMA SONUÇLARI JSON'unu analiz et. Bu sonuçlardaki gerçek şirketleri Türkiye fırsat radarı perspektifinden değerlendir.
+    const userPrompt = `Aşağıdaki CANLI WEB ARAMA SONUÇLARI JSON'unu analiz et.
 
 CANLI ARAMA VERİSİ:
-${searchDataJSON}
+${JSON.stringify(searchData, null, 2)}
 
 FİLTRELER:
 - Sektör: ${sectorLabel}
-- Momentum kriteri: ${momentumFilter || 'herhangi'}
-- Bariyer kriteri: ${barrierFilter || 'herhangi'}
+- Momentum: ${momentumFilter || 'herhangi'}
+- Bariyer: ${barrierFilter || 'herhangi'}
 
-Yukarıdaki JSON verilerinde geçen gerçek şirketlerden Türkiye için en uygun 5 tanesini seç. Her biri için şu alanları doldur:
+Bu verilerden Türkiye için en uygun 5 şirketi seç ve analiz et:
 
 [
   {
-    "name": "Arama verisindeki gerçek şirket adı",
+    "name": "Gerçek şirket adı (arama verisinden)",
     "sector": "Sektör Türkçe",
-    "stage": "Yatırım turu — tutar (arama verisinden çıkar)",
+    "stage": "Yatırım turu — tutar",
     "oneLiner": "Ne yaptığı max 10 kelime Türkçe",
     "whatItDoes": "İş modeli Türkçe 2-3 cümle",
     "trOpportunity": "Türkiye fırsatı Türkçe 2-3 cümle",
@@ -146,14 +150,14 @@ Yukarıdaki JSON verilerinde geçen gerçek şirketlerden Türkiye için en uygu
     "revenueModel": "Abonelik",
     "revenueDetail": "Gelir detayı Türkçe 1-2 cümle",
     "hype": "sessiz",
-    "url": "arama verisindeki url alanından al"
+    "url": ""
   }
 ]
 
-momentum değerleri: "Amerika kanıtladı", "Dünyada da yeni", "Tren hareket etti"
-barrier değerleri: "Açık pazar", "Orta bariyer", "Kaleli pazar"
-revenueModel değerleri: "Abonelik", "Marketplace", "Finansal ürün", "Doğrudan satış"
-hype değerleri: "sessiz", "yükselen", "zirve"`;
+momentum: "Amerika kanıtladı", "Dünyada da yeni", "Tren hareket etti"
+barrier: "Açık pazar", "Orta bariyer", "Kaleli pazar"
+revenueModel: "Abonelik", "Marketplace", "Finansal ürün", "Doğrudan satış"
+hype: "sessiz", "yükselen", "zirve"`;
 
     const response = await client.messages.create({
       model: 'claude-sonnet-4-5',
@@ -162,44 +166,40 @@ hype değerleri: "sessiz", "yükselen", "zirve"`;
       messages: [{ role: 'user', content: userPrompt }]
     });
 
-    // 5. Response parse
-    const rawText = response.content
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join('');
-
+    const rawText = response.content.filter(b => b.type === 'text').map(b => b.text).join('');
     const clean = rawText.replace(/```json|```/g, '').trim();
     const match = clean.match(/\[[\s\S]*\]/);
 
-    if (!match) {
-      console.error('[PARSE ERROR] Raw:', clean.substring(0, 300));
-      throw new Error('JSON parse hatası — tekrar deneyin');
-    }
+    if (!match) throw new Error('JSON parse hatası — tekrar deneyin');
 
     let startups;
     try {
       startups = JSON.parse(match[0]);
-    } catch (parseErr) {
-      console.error('[PARSE ERROR]', parseErr.message);
+    } catch {
       throw new Error('Yanıt formatı hatalı — tekrar deneyin');
     }
 
-    // 6. Validasyon: Boş veya geçersiz kayıtları filtrele
+    // Validasyon
     const valid = startups.filter(s =>
-      s.name &&
-      s.name.length > 2 &&
+      s.name && s.name.length > 2 &&
       !s.name.toLowerCase().includes('startup adı') &&
       s.trScore >= 1 && s.trScore <= 10
     );
 
-    if (valid.length === 0) {
-      throw new Error('Geçerli startup bulunamadı — filtreleri değiştirip tekrar deneyin');
-    }
+    if (valid.length === 0) throw new Error('Geçerli startup bulunamadı — filtreleri değiştirip tekrar deneyin');
 
-    // 7. Regülasyon riskini otomatik ata
-    valid.forEach(s => { s.regulatoryRisk = autoReg; });
+    // AŞAMA 3: Her startup için resmi site araması (paralel)
+    console.log(`[URL LOOKUP] ${valid.length} startup için resmi site aranıyor...`);
+    await Promise.all(
+      valid.map(async (s) => {
+        s.regulatoryRisk = autoReg;
+        const officialUrl = await findOfficialWebsite(s.name);
+        s.url = officialUrl || '';
+        console.log(`[URL] ${s.name} → ${s.url || 'bulunamadı'}`);
+      })
+    );
 
-    console.log(`[SUCCESS] ${valid.length} geçerli startup döndürüldü`);
+    console.log(`[SUCCESS] ${valid.length} startup döndürüldü`);
     res.json({ success: true, data: valid });
 
   } catch (err) {
